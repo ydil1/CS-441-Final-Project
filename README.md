@@ -40,7 +40,6 @@ final_deliever/
 │   └── final_two_week_mape.csv      # Final evaluation metrics
 │
 └── Documentation
-    ├── Final Presentation.pptx
     └── Headcount to Cost Conversion.docx
 ```
 
@@ -510,5 +509,6 @@ This script analyzes:
 ## License
 
 This project was developed for academic purposes as part of the University of Illinois CS 441 Final Project group.
+
 
 
