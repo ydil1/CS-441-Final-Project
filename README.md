@@ -15,7 +15,7 @@ final_deliever/
 │
 ├── Python Scripts
 │   ├── merge_input_dataset.ipynb    # Data preprocessing & feature engineering
-│   ├── Model_new.py              # Main ensemble model (training & evaluation)
+│   ├── Final_model.py              # Main ensemble model (training & evaluation)
 │   └── analyze_weekly_patterns.py # Pattern analysis & exploration
 │
 ├── Data Files
@@ -64,7 +64,7 @@ final_deliever/
 
 ---
 
-#### 2. `Model_new.py`
+#### 2. `Final_model.py`
 **Purpose**: Main ensemble model training and 2-week rolling evaluation
 
 **Model Architecture** (Weighted Ensemble):
@@ -96,38 +96,38 @@ final_deliever/
 ## Feature Engineering (Detailed)
 
 ### 1. Temporal Features
-> **Location**: `Model_new.py` → `create_features_v5()` function (lines 113-139)
+> **Location**: `Final_model.py` → `create_features_v5()` function (lines 113-139)
 
 ```python
-# Basic temporal extraction (Model_new.py lines 115-122)
+# Basic temporal extraction (Final_model.py lines 115-122)
 hour, day, month, year, weekday, week_of_year, day_of_year, quarter
 
-# Sinusoidal encoding for cyclical patterns (Model_new.py lines 124-127)
+# Sinusoidal encoding for cyclical patterns (Final_model.py lines 124-127)
 hour_sin = sin(2π * hour / 24)      hour_cos = cos(2π * hour / 24)
 weekday_sin = sin(2π * weekday / 7)  weekday_cos = cos(2π * weekday / 7)
 month_sin = sin(2π * month / 12)     month_cos = cos(2π * month / 12)
 week_sin = sin(2π * week / 52)       week_cos = cos(2π * week / 52)
 
-# Second harmonic for hour (Model_new.py lines 128-129)
+# Second harmonic for hour (Final_model.py lines 128-129)
 hour_sin2 = sin(4π * hour / 24)      hour_cos2 = cos(4π * hour / 24)
 
-# Binary time indicators (Model_new.py lines 130-136)
+# Binary time indicators (Final_model.py lines 130-136)
 is_weekend, is_friday, is_saturday, is_sunday
 is_peak (18:00-01:00), is_late_night (00:00-05:00), is_evening (17:00-21:00)
 ```
 
 ### 2. Lag Features (Historical Patterns)
-> **Location**: `Model_new.py` → `create_features_v5()` function (lines 141-158)
+> **Location**: `Final_model.py` → `create_features_v5()` function (lines 141-158)
 
 ```python
-# Weekly lag values - 1-8 weeks back, shift = 168 hours per week (Model_new.py lines 141-142)
+# Weekly lag values - 1-8 weeks back, shift = 168 hours per week (Final_model.py lines 141-142)
 slot_lag_1week, slot_lag_2week, ..., slot_lag_8week
 
-# Exponentially weighted mean - recent weeks weighted higher (Model_new.py lines 144-145)
+# Exponentially weighted mean - recent weeks weighted higher (Final_model.py lines 144-145)
 weights = [0.30, 0.25, 0.20, 0.12, 0.08, 0.05]
 slot_exp_weighted = Σ(slot_lag_i * weight_i)
 
-# Rolling statistics over 4-week and 8-week windows (Model_new.py lines 146-158)
+# Rolling statistics over 4-week and 8-week windows (Final_model.py lines 146-158)
 slot_mean_4week, slot_mean_8week
 slot_std_4week, slot_std_8week
 slot_median_4week, slot_min_4week, slot_max_4week
@@ -135,45 +135,45 @@ slot_range_4week, slot_q25_4week, slot_q75_4week, slot_iqr_4week
 ```
 
 ### 3. Trend & Momentum Features
-> **Location**: `Model_new.py` → `create_features_v5()` function (lines 159-175)
+> **Location**: `Final_model.py` → `create_features_v5()` function (lines 159-175)
 
 ```python
-# Week-to-week trends (Model_new.py lines 159-163)
+# Week-to-week trends (Final_model.py lines 159-163)
 trend_1to2 = slot_lag_1week - slot_lag_2week
 trend_2to3 = slot_lag_2week - slot_lag_3week
 trend_1to4 = slot_lag_1week - slot_lag_4week
 trend_4to8 = slot_lag_4week - slot_lag_8week
 
-# Trend ratios - relative change (Model_new.py lines 164-165)
+# Trend ratios - relative change (Final_model.py lines 164-165)
 trend_ratio_1to2 = slot_lag_1week / (slot_lag_2week + 1)
 trend_ratio_1to4 = slot_lag_1week / (slot_lag_4week + 1)
 
-# Position relative to historical average (Model_new.py lines 166-170)
+# Position relative to historical average (Final_model.py lines 166-170)
 rel_to_mean_4 = slot_lag_1week / (slot_mean_4week + 1)
 rel_to_median = slot_lag_1week / (slot_median_4week + 1)
 zscore = (slot_lag_1week - slot_mean_4week) / (slot_std_4week + 1)
 cv_4week = slot_std_4week / (slot_mean_4week + 1)  # Coefficient of variation
 
-# Momentum and acceleration - second-order trends (Model_new.py lines 173-175)
+# Momentum and acceleration - second-order trends (Final_model.py lines 173-175)
 momentum_1 = trend_1to2 - trend_2to3
 momentum_2 = trend_2to3 - trend_3to4
 acceleration = momentum_1 - momentum_2
 ```
 
 ### 4. Weekday-Hour Statistics Features
-> **Location**: `Model_new.py` → `get_weekday_hour_stats()` function (lines 26-56) and `add_wh_features()` function (lines 196-214)
+> **Location**: `Final_model.py` → `get_weekday_hour_stats()` function (lines 26-56) and `add_wh_features()` function (lines 196-214)
 
 ```python
-# Statistics for each (weekday, hour) combination from recent 12 weeks (Model_new.py lines 36-44)
+# Statistics for each (weekday, hour) combination from recent 12 weeks (Final_model.py lines 36-44)
 wh_mean, wh_median, wh_std, wh_min, wh_max
 wh_q10, wh_q25, wh_q75, wh_q90
 
-# Trend analysis - recent 6 weeks vs older 6 weeks (Model_new.py lines 45-54)
+# Trend analysis - recent 6 weeks vs older 6 weeks (Final_model.py lines 45-54)
 wh_trend = recent_mean - older_mean
 wh_trend_ratio = recent_mean / (older_mean + 1)
 wh_volatility_trend = recent_std - older_std
 
-# Relative position features (Model_new.py lines 205-212)
+# Relative position features (Final_model.py lines 205-212)
 rel_to_wh_mean = slot_lag_1week / (wh_mean + 1)
 diff_from_wh_mean = slot_lag_1week - wh_mean
 wh_zscore = (slot_lag_1week - wh_mean) / (wh_std + 1)
@@ -182,15 +182,15 @@ wh_baseline = wh_mean + wh_trend
 ```
 
 ### 5. Interaction Features
-> **Location**: `Model_new.py` → `create_features_v5()` function (lines 176-180)
+> **Location**: `Final_model.py` → `create_features_v5()` function (lines 176-180)
 
 ```python
-# Time-based interactions (Model_new.py lines 176-178)
+# Time-based interactions (Final_model.py lines 176-178)
 weekend_peak = is_weekend * is_peak
 friday_peak = is_friday * is_peak
 saturday_peak = is_saturday * is_peak
 
-# Holiday interactions (Model_new.py lines 179-180)
+# Holiday interactions (Final_model.py lines 179-180)
 holiday_weekend = holiday * is_weekend
 holiday_peak = holiday * is_peak
 ```
@@ -263,10 +263,10 @@ class value_encoder(BaseEstimator, TransformerMixin):
 ```
 
 ### 5. Final NaN Cleanup in Model
-> **Location**: `Model_new.py` → `create_features_v5()` function (line 182)
+> **Location**: `Final_model.py` → `create_features_v5()` function (line 182)
 
 ```python
-# Any remaining NaN filled with 0 (Model_new.py line 182)
+# Any remaining NaN filled with 0 (Final_model.py line 182)
 df = df.fillna(0)
 ```
 
@@ -287,14 +287,14 @@ pipe = Pipeline([
 ## Key Innovations
 
 ### 1. Similarity-Based Sample Weighting
-> **Location**: `Model_new.py` → `find_similar_weeks_v5()` function (lines 59-110)
+> **Location**: `Final_model.py` → `find_similar_weeks_v5()` function (lines 59-110)
 
 **Problem**: Not all historical data is equally relevant for predicting a specific future period.
 
 **Solution**: We identify historically similar weeks and upweight them during training:
 
 ```python
-# Multi-factor similarity scoring (Model_new.py lines 90-97)
+# Multi-factor similarity scoring (Final_model.py lines 90-97)
 similarity = (
     0.20 * season_sim +      # Same time of year (week of year)
     0.30 * level_sim +       # Similar headcount levels
@@ -305,13 +305,13 @@ similarity = (
 )
 ```
 
-**Seasonality Similarity** (Model_new.py lines 82-84): Uses circular distance for week-of-year
+**Seasonality Similarity** (Final_model.py lines 82-84): Uses circular distance for week-of-year
 ```python
 week_diff = min(|week1 - week2|, 52 - |week1 - week2|)
 season_sim = 1 / (1 + week_diff)
 ```
 
-**Sample Weight Application** (Model_new.py lines 301-305):
+**Sample Weight Application** (Final_model.py lines 301-305):
 ```python
 sample_weight = np.ones(len(train_idx_list))
 for i, idx in enumerate(train_idx_list):
@@ -320,7 +320,7 @@ for i, idx in enumerate(train_idx_list):
 ```
 
 ### 2. Dynamic Weekday-Hour Statistics
-> **Location**: `Model_new.py` → `get_weekday_hour_stats()` function (lines 26-56)
+> **Location**: `Final_model.py` → `get_weekday_hour_stats()` function (lines 26-56)
 
 **Problem**: Same (weekday, hour) slots have different patterns that evolve over time.
 
@@ -354,7 +354,7 @@ X[['CoinIn', 'Games']] = X[['CoinIn', 'Games']].shift(24 * 21)
 ```
 
 ### 4. Diverse Ensemble with Complementary Models
-> **Location**: `Model_new.py` → `DiverseEnsemble` class (lines 217-271)
+> **Location**: `Final_model.py` → `DiverseEnsemble` class (lines 217-271)
 
 **Design Philosophy**: Combine models with different strengths:
 
@@ -367,7 +367,7 @@ X[['CoinIn', 'Games']] = X[['CoinIn', 'Games']].shift(24 * 21)
 | RandomForest | lines 239-242 | Variance reduction | Stability |
 | LightGBM | lines 246-250 | Speed + accuracy | Optional booster |
 
-**Weighted Prediction** (Model_new.py lines 266-268):
+**Weighted Prediction** (Final_model.py lines 266-268):
 ```python
 def predict(self, X):
     preds = [model.predict(X) for name, model in self.models]
@@ -375,7 +375,7 @@ def predict(self, X):
 ```
 
 ### 5. Rolling Window Validation
-> **Location**: `Model_new.py` → `run_prediction_v5()` function (lines 274-329)
+> **Location**: `Final_model.py` → `run_prediction_v5()` function (lines 274-329)
 
 **Approach**: Mimic real-world deployment scenario
 ```python
@@ -425,7 +425,7 @@ python merge_input_dataset.py
 ### Step 2: Train the Model
 
 ```bash
-python Model_new.py
+python Final_model.py
 ```
 
 This will:
@@ -500,9 +500,9 @@ This script analyzes:
 
 ## Technical Notes
 
-1. **Data Cutoff**: Model excludes data after 2023-10-15 due to data quality issues (`Model_new.py` line 22)
+1. **Data Cutoff**: Model excludes data after 2023-10-15 due to data quality issues (`Final_model.py` line 22)
 2. **Lag Transformation**: CoinIn/Games are shifted 21 days ahead (`merge_input_dataset.ipynb`)
-3. **Training Start**: First 1344 hours (8 weeks) excluded to ensure sufficient lag features (`Model_new.py` line 293)
+3. **Training Start**: First 1344 hours (8 weeks) excluded to ensure sufficient lag features (`Final_model.py` line 293)
 4. **Model Size**: Trained ensemble is ~243 MB (pickle format)
 
 ---
@@ -510,3 +510,4 @@ This script analyzes:
 ## License
 
 This project was developed for academic purposes as part of the University of Illinois CS 441 Final Project group.
+
