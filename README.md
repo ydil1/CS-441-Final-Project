@@ -1,4 +1,4 @@
-# Casino Slot Headcount Prediction System
+# Casino Headcount Prediction System
 
 ## Project Overview
 
@@ -510,4 +510,5 @@ This script analyzes:
 ## License
 
 This project was developed for academic purposes as part of the University of Illinois CS 441 Final Project group.
+
 
